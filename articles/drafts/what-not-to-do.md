@@ -1,6 +1,6 @@
 # What not to do
 
-Sometimes I feel like the only things I know about somewhere are _negative cases_. Here are some of them.
+Sometimes I feel like the only things I know about software are _negative cases_. Here are some of them.
 
 
 ## Building, continuous integration, etc
