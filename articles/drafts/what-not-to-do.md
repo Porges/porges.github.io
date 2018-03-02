@@ -15,3 +15,13 @@ Products like TeamCity and VSTS have wonderful UIs for creating and editing buil
 * Changing the build doesn't break the ability to check out old code and build it. This makes tools like `git bisect` much more useful.
 * You don't need to back up your CI server builds.
 * The build is portable across any CI target (internal, public Travis/Appveyor, etc).
+
+## Code-level
+
+### Don't start hidden parallel background operations
+
+This leads to hard-to-test code and an invasion of `Thread.Sleep`s.
+
+#### Instead: always give the caller some way to wait upon completion
+
+Even if you don't use it in your production code (and let it run off in the background), return a `Task` so that test code can avoid running into timing issues.
