@@ -9,7 +9,7 @@ Sometimes I feel like the only things I know about software are _negative cases_
 
 Products like TeamCity and VSTS have wonderful UIs for creating and editing build pipelines. You should not use them.
 
-#### Instead: build scripts should be checked in artifacts
+#### Instead: build scripts should be checked-in artifacts
 
 * They follow the code. Changing the build on a branch doesn't affect other branches, and will follow the code when it's merged.
 * Changing the build doesn't break the ability to check out old code and build it. This makes tools like `git bisect` much more useful.
