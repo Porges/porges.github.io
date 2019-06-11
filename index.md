@@ -1,10 +1,12 @@
 ## George Pollard
 
+At one point I deleted everything that was here. Maybe I shall do so again.
+
 ### Articles
 
-Newest first:
+“Newest” first:
 
-* [(Poor man’s) model-based testing with F# & FsCheck](articles/model-based-testing.md)
+* [2017] [(Poor man’s) model-based testing with F# & FsCheck](articles/model-based-testing.md)
 * [Managing multiplicity, monoidally](articles/managing-multiplicity.md)
 * [Ignore null strategies](articles/ignore-null-strategies.md)
 
