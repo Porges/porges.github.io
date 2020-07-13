@@ -2,6 +2,8 @@
 
 At one point I deleted everything that was here. Maybe I shall do so again.
 
+----
+
 ### Articles
 
 “Newest” first:
@@ -13,3 +15,8 @@ At one point I deleted everything that was here. Maybe I shall do so again.
 ### Elsewhere
 
 * [Twitter](https://twitter.com/porges)
+* [Ways to Play](https://games.porg.es)
+
+----
+
+* [johannes](else/johannes.md)
