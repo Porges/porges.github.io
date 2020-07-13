@@ -7,8 +7,8 @@ At one point I deleted everything that was here. Maybe I shall do so again.
 “Newest” first:
 
 * [2017] [(Poor man’s) model-based testing with F# & FsCheck](articles/model-based-testing.md)
-* [Managing multiplicity, monoidally](articles/managing-multiplicity.md)
-* [Ignore null strategies](articles/ignore-null-strategies.md)
+* [older] [Managing multiplicity, monoidally](articles/managing-multiplicity.md)
+* [even older] [Ignore null strategies](articles/ignore-null-strategies.md)
 
 ### Elsewhere
 
