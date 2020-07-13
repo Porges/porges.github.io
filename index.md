@@ -19,4 +19,4 @@ At one point I deleted everything that was here. Maybe I shall do so again.
 
 ----
 
-* [johannes](else/johannes.html)
+* [johannes](etc/johannes.html)
