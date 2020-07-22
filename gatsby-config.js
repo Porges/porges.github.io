@@ -77,6 +77,12 @@ module.exports = {
       },
     },
     `gatsby-plugin-cname`,
+    {
+       resolve:`gatsby-plugin-draft`,
+       options: {
+          publishDraft: process.env.NODE_ENV !== 'production',
+       }
+    },
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline
     // `gatsby-plugin-offline`,

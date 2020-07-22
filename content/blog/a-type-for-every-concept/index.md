@@ -1,4 +1,7 @@
-# A type for every concept
+---
+title: A Type For Every Concept
+draft: true
+---
 
 [⚠ *many opinions*]
 
@@ -42,7 +45,40 @@ Even internally (not at the edges of the system), prefer types to preconditions.
 
 If some identifier should be case-insensitive, you can enforce this with its own type:
 
-<script src="https://gist.github.com/Porges/32905052935535640018c0642b148805.js?file=00-identifier.cs"></script>
+```csharp
+struct Identifier
+    : IEquatable<Identifier>
+{
+    private static StringComparer Comparer
+        = StringComparer.OrdinalIgnoreCase;
+
+    public Identifier(string value)
+    {
+        Value = value;
+    }
+
+    public string Value { get; }
+    public override string ToString() => Value;
+
+    public override int GetHashCode()
+        => Comparer.GetHashCode(Value);
+
+    public bool Equals(Identifier other)
+        => Comparer.Equals(Value, other.Value);
+
+    public override bool Equals(object obj)
+    {
+        var other = obj as Identifier?;
+        return other.HasValue && Equals(other.Value);
+    }
+
+    public static bool operator ==(Identifier left, Identifier right)
+        => left.Equals(right);
+
+    public static bool operator !=(Identifier left, Identifier right)
+        => !left.Equals(right);
+}
+```
 
 Unfortunately, this is a little verbose in C#. However, you don’t need to think about it that much as it’s all boilerplate.
 

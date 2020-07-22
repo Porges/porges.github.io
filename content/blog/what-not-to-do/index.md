@@ -1,4 +1,7 @@
-# What not to do
+---
+title: What not to do
+draft: true
+---
 
 Sometimes I feel like the only things I know about software are _negative cases_. Here are some of them.
 
