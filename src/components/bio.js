@@ -60,8 +60,7 @@ const Bio = () => {
         Written by <strong>{author.name}</strong>
         {' '}
         (<a href={`https://twitter.com/${social.twitter}`}>
-          @{social.twitter} on Twitter
-        </a>)
+          @{social.twitter}</a>). You might also like <a href="https://games.porg.es/">Ways To Play</a>, a site about games.
       </p>
     </div>
   )
