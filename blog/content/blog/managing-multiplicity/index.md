@@ -1,4 +1,7 @@
-# Managing multiplicity
+---
+title: Managing Multiplicity
+date: "2000-01-03"
+---
 
 *Alternate titles: Purging Pluralities, Collapsing Cardinality.*
 
@@ -12,7 +15,26 @@ Essentially, we’ll discover how to *mechanize* the production of [composites](
 
 If we have a class that has some behaviour that is injected, it often makes sense to generalize to allow multiple instances of that behaviour to be injected. We might end up with code that looks something like this:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=0-situation.cs"></script>
+```csharp
+interface IStrategy
+{
+    Result DoTheThing(Input input);
+}
+
+class Consumer
+{
+    readonly ICollection<IStrategy> _strategies;
+
+    public void PerformDuties()
+    {
+        foreach (var strategy in _strategies)
+        {
+            var result = strategy.DoTheThing(/*...*/);
+            // do something with result
+        }
+    }
+}
+```
 
 This works fine. But there are a few reasons we should avoid this construct.
 
@@ -35,13 +57,50 @@ A *policy* decides whether or not to perform an action. Usually when dealing wit
 
 In code, this will look something like this. We have an `IPolicy` interface and a consumer class:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=1-policies.cs"></script>
+```csharp
+interface IPolicy
+{
+    bool ShouldPerformAction(Item item);
+}
+
+class UsesPolicy
+{
+    readonly ICollection<IPolicy> _policies;
+
+    public void PerformDuties(Item item)
+    {
+        foreach (var policy in _policies)
+        {
+            if (!policy.ShouldPerformAction(item))
+            {
+                return;
+            }
+        }
+
+        // we got here, so perform the action
+    }
+}
+```
 
 If any of the policies return `false`, we’ll bail out of the method, but otherwise we will perform the action.
 
 In order to reduce the complexity of the consumer class, we can create a new implementation of the `IPolicy` interface, which *knows how to combine other policies*:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=2-combinedpolicy.cs"></script>
+```csharp
+class CombinedPolicy : IPolicy
+{
+    [NotNull]
+    readonly IReadOnlyCollection<IPolicy> _policies;
+
+    public CombinedPolicy(IEnumerable<IPolicy> policies)
+    {
+        _policies = policies.ToList();
+    }
+
+    public bool ShouldPerformAction(Item item)
+        => _policies.All(p => p.ShouldPerformAction(item));
+}
+```
 
 Note that `ShouldPerformAction` is (functionally) equivalent to what the consumer class was doing before.
 
@@ -51,7 +110,20 @@ The end result is that our consumer class will only ever need to deal with *one*
 
 So, let’s simplify it:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=3-revisedpolicy.cs"></script>
+```csharp
+class UsesPolicyRevised
+{
+    readonly IPolicy _policy;
+
+    public void PerformDuties(Item item)
+    {
+        if (_policy.ShouldPerformAction(item))
+        {
+            // perform the action
+        }
+    }
+}
+```
 
 Great! Now we only have to deal with one `IPolicy` at a time. The added bonus is that if we have any other classes that use `IPolicy`, they will now *automatically* be able to deal with *any* number of policies, and they way they deal with multiple policies will be consistent. 👍
 
@@ -61,17 +133,64 @@ This situation might arise if you want to send a message to several different de
 
 Let’s start with a similar setup to the previous one. We have an `IDoStuff` action interface and a consumer:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=4-actions.cs"></script>
+```csharp
+interface IDoStuff
+{
+    void DoStuff(Item item);
+}
+
+class InvokesActions
+{
+    readonly ICollection<IDoStuff> _actions;
+
+    public void PerformDuties(Item item)
+    {
+        foreach (var action in _actions)
+        {
+            action.DoStuff(item);
+        }
+    }
+}
+```
 
 Here we have a fan-out situation where multiple actions are called on the same value.
 
 If you’ve been following closely, you’ll know what we have to do next: create a class that does this for us. The important thing is that it is also an instance of `IDoStuff`:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=5-combinedaction.cs"></script>
+```csharp
+class CombinedAction : IDoStuff
+{
+    [NotNull]
+    readonly IReadOnlyCollection<IDoStuff> _actions;
+
+    public CombinedAction(IEnumerable<IDoStuff> actions)
+    {
+        _actions = actions.ToList();
+    }
+
+    public void DoStuff(Item item)
+    {
+        foreach (var action in _actions)
+        {
+            action.DoStuff(item);
+        }
+    }
+}
+```
 
 Now our original class becomes simply:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=6-revisedaction.cs"></script>
+```csharp
+class InvokesActionsRevised
+{
+    readonly IDoStuff _action;
+
+    public void PerformDuties(Item item)
+    {
+        _action.DoStuff(item);
+    }
+}
+```
 
 That was pretty easy!
 
@@ -79,11 +198,30 @@ Something else important has happened here: not only can we give the consumer cl
 
 Let’s change the interfaces a bit to make it more interesting. Imagine instead that the `IDoStuff` interface was asynchronous:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=7-asyncaction.cs"></script>
+```csharp
+interface IDoStuffAsync
+{
+    Task DoStuff(Item item, CancellationToken ct);
+}
+```
 
 Now there are two plausible implementations of `CombinedAction`. One will run the actions in sequence, like before (I won’t show this here), but another possibility is that we want to fire off all the actions at once, in parallel:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=8-parallelaction.cs"></script>
+```csharp
+class InParallelActions : IDoStuffAsync
+{
+    [NotNull]
+    readonly IReadOnlyCollection<IDoStuffAsync> _actions;
+
+    public InParallelActions(IEnumerable<IDoStuffAsync> actions)
+    {
+        _actions = actions.ToList();
+    }
+
+    public Task DoStuff(Item item, CancellationToken ct)
+        => Task.WhenAll(_actions.Select(action => action.DoStuff(item, ct)));
+}
+```
 
 This gives us more flexibility, and we can make decisions about how the actions are to be performed (in sequence or in parallel) *without changing the consuming class*.
 
@@ -95,19 +233,81 @@ Each individual collector would be a separate class, so that you can develop & t
 
 The initial setup should be familiar by now. We have an interface `ICollectInformation` and a consumer class:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=9-collectors.cs"></script>
+```csharp
+struct Datum
+{
+    public string Key { get; }
+
+    public double Value { get; }
+}
+
+interface ICollectInformation
+{
+    Datum CollectInformation();
+}
+
+class CollectsInformation
+{
+    readonly ICollection<ICollectInformation> _collecters;
+
+    public void DoCollection()
+    {
+        var data = new List<Datum>();
+
+        foreach (var collector in _collecters)
+        {
+            data.Add(collector.CollectInformation());
+        }
+        
+        // do something with data
+    }
+}
+```
 
 At this point, we want to be able to create an instance which will collect items into a list for us. However, we can’t return a list from `ICollectInformation`&mdash;it can only return a single `Datum`. So, let’s alter this interface (it’s our code, after all), and change it to return any number of items:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=10-revisedinterface.cs"></script>
+```csharp
+interface ICollectInformation
+{
+    IEnumerable<Datum> CollectInformation();
+}
+```
 
 Now we can write the implementation of `ICollectInformation` that we want:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=11-aggregatecollector.cs"></script>
+```csharp
+class AggregateCollector : ICollectInformation
+{
+    [NotNull]
+    readonly IReadOnlyCollection<ICollectInformation> _collectors;
+
+    public AggregateCollector(IEnumerable<ICollectInformation> collectors)
+    {
+        _collectors = collectors.ToList();
+    }
+
+    public IEnumerable<Datum> CollectInformation()
+        => from collector in _collectors
+           from datum in collector.CollectInformation()
+           select datum;
+}
+```
 
 And our consumer class again only has to deal with a single instance:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=12-collectorconsumer.cs"></script>
+```csharp
+class CollectsInformationRevised
+{
+    readonly ICollectInformation _collecter;
+
+    public void Collect()
+    {
+        var data = _collecter.CollectInformation().ToList();
+        
+        // do something with data
+    }
+}
+```
 
 Once again, complexity averted!
 
@@ -150,7 +350,32 @@ So, to summarize: Once you have discovered that the result type of a strategy ca
 
 If possible, you could also switch out the interface for an abstract base class. This allows us to define operators on the class, so we can easily combine multiple instances without having to use the ‘combiner’ type explicitly. Indeed, we can hide the combiner type internally:
 
-<script src="https://gist.github.com/Porges/bceb52ff49d059f7a687085498ea774d.js?file=13-abstract-base.cs"></script>
+```csharp
+abstract class PolicyType
+{
+    public abstract bool ShouldPerformAction(Item item);
+    
+    public static PolicyType operator&(PolicyType first, PolicyType second)
+        => new CombinedPolicy(first, second);
+    
+    // this could be much cleaner if C# ever gets F#-style object expressions:
+    // https://github.com/dotnet/roslyn/issues/13#issuecomment-195161037
+    private class CombinedPolicy : PolicyType
+    {
+        readonly PolicyType _first;
+        readonly PolicyType _second;
+
+        public CombinedPolicy(PolicyType first, PolicyType second)
+        {
+            _first = first;
+            _second = second;
+        }
+
+        public override bool ShouldPerformAction(Item item)
+            => _first.ShouldPerformAction(item) && _second.ShouldPerformAction(item);
+    }
+}
+```
 
 Then we can simply combine policies via `p1 & p2`. Note that this relies on the associativity of the monoid to work well!
 

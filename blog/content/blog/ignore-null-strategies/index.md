@@ -1,4 +1,7 @@
-# Ignore null strategies
+---
+title: Ignore Null Strategies
+date: "2000-01-02"
+---
 
 > There's no such thing as a null strategy!
 

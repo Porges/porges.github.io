@@ -1,3 +1,9 @@
+---
+title: Johannes
+date: "2000-01-01"
+description: "somewhere between Wellington & Auckland"
+---
+
 **johannes** dud nit know many people- he did not even own msny peooplexand as duch hexwaeza dailue anx a  brigand and a foe. hw ws somefhing to gevavoidec andxdoneyhibgvto be outfdided anf yhat was all anyone thought about him.
 
 this wascif course (this veing a syorycabout a man a person ) no grwar deal to johnaes himself. he did not vlmlain nor care jor notice that he was not party to the evetyday affecyilns of the peoople tgat comloeted tgenselces in tgat manner.
